@@ -1,97 +1,201 @@
-import TD7.ArbreBinaire.Noeud;
 
 public class DicoArbre extends Dico {
-    Element racine;
-    private class Element{
-        Element Gauche;
-        Element Droit;
+    Noeud racine;
+
+    class Noeud{
+        Noeud Droit;
+        Noeud Gauche;
         Paire<String,String> pair;
 
-        public Element(Paire<String,String> v,Element g,Element d){
-            pair=v;
-            Gauche=g;
-            Droit=d;
+        public Noeud(Noeud D,Noeud G,String Key,String Value){
+            Droit=D;
+            Gauche=G;
+            pair=new Paire<String,String>(Key,Value);
+        }
+        public Noeud(String Key,String Value){
+            pair=new Paire<String,String>(Key,Value);
         }
         public String getKey(){
             return pair.getKey();
         }
+        
         public String getValue(){
             return pair.getValue();
+        }
+        public void setKey(String c){
+            pair.setKey(c);
+        }
+        
+        public void setValue(String v){
+            pair.setValue(v);
+        }
+        public void setPair(Paire<String,String> n){
+            pair=n;
         }
         public Paire<String,String> getPair(){
             return pair;
         }
-        public Element getDroit(){
-            return Droit;
+        public void resetAll(Noeud news){
+            Droit=news.Droit;
+            Gauche=news.Gauche;
+            pair=news.pair;
         }
-        public void setDroit(Element d){
-            Droit=d;
+        @Override
+        public String toString() {
+            return " ("+Gauche+") "+pair+" ("+Droit+")";
         }
-        public Element getGauche(){
-            return Gauche;
-        }
-        public void setGauche(Element g){
-            Gauche=g;
-        }
-    }
-    public boolean estVide(){
-        return racine==null;
-    }
-    @Override
-    public void associe(String cle, String valeur) {
-        Element temp= new Element(new Paire<String,String>(cle, valeur), null, null);
-        if(estVide())racine=temp;
-         else inser(temp,racine);
     }
 
     @Override
+    public void associe(String cle, String valeur) {
+        if(racine==null){
+            racine=new Noeud( cle, valeur);
+            return;
+        }
+        else inser(cle, valeur, racine);
+    }
+    
+    /**
+     * @param cle Clé de l'association, supposée non nulle
+     * @param value Valeur de l'association, supposée non nulle
+     * @param courant Noeud apartir du quel ajouter le nouveau noeud
+     */
+    public void inser(String cle,String value,Noeud courant){
+        if(courant.getKey()==cle){
+            courant.setValue(value);
+        }
+        else if(courant.getKey().compareTo(cle)>0){
+            if(courant.Gauche==null){
+                courant.Gauche=new Noeud(cle, value);
+            }
+            else{
+                inser(cle, value, courant.Gauche);
+            }
+        }
+        else{
+            if(courant.Droit==null){
+                courant.Droit=new Noeud(cle, value);
+            }
+            else{
+                inser(cle, value, courant.Droit);
+            }
+        }
+    }
+
+
+    
+    @Override
     public void supprime(String cle) {
+        supprimerRc(cle, racine);
         
+    }
+
+    public void supprimerRc(String cle,Noeud courant){
+        Noeud aSupp=getRc(cle, courant);
+        // Cas avec 1 Feuille
+        if(aSupp.Gauche!=null&&aSupp.Droit==null){
+            aSupp.resetAll(aSupp.Gauche);
+        }
+        else if(aSupp.Gauche==null&&aSupp.Droit!=null){
+            aSupp.resetAll(aSupp.Droit);
+        }
+
+        else{
+            Noeud pere=getPere(aSupp);
+            System.out.println(pere);
+            System.out.println(aSupp);
+
+            // cas feuille
+            if(aSupp.Gauche==null&&aSupp.Droit==null){
+                if(pere.Gauche==aSupp){
+                    pere.Gauche=null;
+                }
+                else {
+                    pere.Droit=null;
+                }
+            }
+            //cas 2 feuilles
+            else{
+                Noeud rempNoeud=plusDroit(aSupp.Gauche);
+                Noeud pereRemp=getPere(rempNoeud);
+                System.out.println(rempNoeud);
+            System.out.println(pereRemp);
+
+
+
+                if(pereRemp==aSupp){
+                    aSupp.Gauche=rempNoeud.Gauche;
+                }
+                else{
+                    pereRemp.Droit=rempNoeud.Gauche;
+                }
+
+                aSupp.setPair(rempNoeud.getPair());
+
+            }
+        }
+        
+    }
+    private Noeud getPere(Noeud courant){
+        Noeud pere= new Noeud(null, null);
+        Noeud actuel=racine;
+        while(actuel!=courant){
+            pere=actuel;
+            if(actuel.getKey().compareTo(courant.getKey())>0){
+                actuel=actuel.Gauche;
+            }
+            else {
+                actuel=actuel.Droit;
+            }
+        }
+        return pere;        
+    }
+    public Noeud plusDroit(Noeud courant){
+        if(courant.Droit==null){
+            return courant;
+        }
+        else return plusDroit(courant.Droit);
     }
 
     @Override
     public String get(String cle) {
-        return getRc(cle, racine);
+        return getRc(cle, racine).getValue();
     }
 
-    public String getRc(String cle , Element x){
-        if(x==null) return null;
-        if(x.getKey()==cle) return x.getValue();
-        if(x.getKey().compareTo(cle)<0){
-            return getRc(cle, x.getGauche());
-        }else {
-            return getRc(cle, x.getDroit());
+    /**
+     * @param cle Clé à rechercher
+     * @param courant Noeud à patrir du quel chercher
+     * @return Noeud associé à la clef
+     */
+    public Noeud getRc(String cle,Noeud courant){
+        if(courant.getKey().compareTo(cle)>0){
+            return getRc(cle, courant.Gauche);
         }
-    }
-    public void inser(Element x,Element courant){
-        if(x.getKey()==courant.getKey())courant.pair.Value=x.getValue();
-            if(courant.getKey().compareTo(x.getKey())<0){
-                if(courant.getGauche()==null) {courant.setGauche(x);}
-                else {inser(x,courant.getGauche());}
-            }else{
-                if(courant.getDroit()==null) {courant.setDroit(x);}
-                else {inser(x,courant.getDroit());}
-                
-            }
-    }
-    @Override
-    public String toString(){
-        if(estVide())return "L'arbre est vide";
-        else return affiche(racine,"");
+        else if(courant.getKey().compareTo(cle)<0){
+            return getRc(cle, courant.Droit);
+        }
+        return courant;
     }
 
-    public String affiche(Element x,String esp) {
-        String resultat = "";
-		if(x!=null) {
+    
+	private String toStringRec(Noeud courant, String prefixe) {
+		String resultat = "";
+		if(courant!=null) {
 			resultat +=
-					esp + "("+ x.getKey() + ", " + x.getValue() + ")" + "\n"
-					+ affiche(x.Gauche, esp + "  ") 
-					+ affiche(x.Droit, esp + "  ") ;			
+					prefixe + "("+ courant.getKey() + ", " + courant.getValue() + ")" + "\n"
+					+ toStringRec(courant.Gauche, prefixe + "  ") 
+					+ toStringRec(courant.Droit, prefixe + "  ") ;			
 			return resultat;
 		}
 		return "";
-    }
-
-
+		
+	}
+	
+	public String toString() {
+		if(racine==null) {
+			return "arbre vide";
+		}
+		else return toStringRec(racine,"");
+	}
 }
 
