@@ -102,8 +102,6 @@ public class DicoArbre extends Dico {
 
         else{
             Noeud pere=getPere(aSupp);
-            System.out.println(pere);
-            System.out.println(aSupp);
 
             // cas feuille
             if(aSupp.Gauche==null&&aSupp.Droit==null){
@@ -118,8 +116,6 @@ public class DicoArbre extends Dico {
             else{
                 Noeud rempNoeud=plusDroit(aSupp.Gauche);
                 Noeud pereRemp=getPere(rempNoeud);
-                System.out.println(rempNoeud);
-            System.out.println(pereRemp);
 
 
 
