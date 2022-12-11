@@ -116,9 +116,7 @@ public class DicoArbre extends Dico {
             else{
                 Noeud rempNoeud=plusDroit(aSupp.Gauche);
                 Noeud pereRemp=getPere(rempNoeud);
-
-
-
+                
                 if(pereRemp==aSupp){
                     aSupp.Gauche=rempNoeud.Gauche;
                 }
@@ -155,7 +153,10 @@ public class DicoArbre extends Dico {
 
     @Override
     public String get(String cle) {
-        return getRc(cle, racine).getValue();
+        Noeud rep=getRc(cle, racine);
+        if(rep!=null)
+        return rep.getValue();
+        else return null;
     }
 
     /**
@@ -164,6 +165,7 @@ public class DicoArbre extends Dico {
      * @return Noeud associé à la clef
      */
     public Noeud getRc(String cle,Noeud courant){
+        if(courant==null) return null;
         if(courant.getKey().compareTo(cle)>0){
             return getRc(cle, courant.Gauche);
         }
@@ -177,10 +179,7 @@ public class DicoArbre extends Dico {
 	private String toStringRec(Noeud courant, String prefixe) {
 		String resultat = "";
 		if(courant!=null) {
-			resultat +=
-					prefixe + "("+ courant.getKey() + ", " + courant.getValue() + ")" + "\n"
-					+ toStringRec(courant.Gauche, prefixe + "  ") 
-					+ toStringRec(courant.Droit, prefixe + "  ") ;			
+			resultat +=	prefixe + "("+ courant.getKey() + ", " + courant.getValue() + ")" + "\n"+ toStringRec(courant.Gauche, prefixe + "  ") + toStringRec(courant.Droit, prefixe + "  ") ;			
 			return resultat;
 		}
 		return "";
@@ -189,7 +188,7 @@ public class DicoArbre extends Dico {
 	
 	public String toString() {
 		if(racine==null) {
-			return "arbre vide";
+			return "l'arbre est vide!!!!!";
 		}
 		else return toStringRec(racine,"");
 	}
