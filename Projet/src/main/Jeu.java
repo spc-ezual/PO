@@ -1,6 +1,7 @@
 /** package principal */
 package main;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import librairies.AssociationTouches;
 import librairies.StdDraw;
@@ -21,6 +22,8 @@ public class Jeu {
 	boolean unitSelect;
 	ArrayList<unite> Ujoueur1;
 	ArrayList<unite> Ujoueur2;
+	unite select;
+	int cmpPas;
 	
 	
 	
@@ -103,7 +106,8 @@ public class Jeu {
 			
 				Affichage.dessineImageDansCase(j, i, mapTerrains[i][j].getChemin());
 				if(mapTerrains[i][j].act!=null){
-					Affichage.dessineImageDansCase(j, i, mapTerrains[i][j].act.getChemin());
+					if(!(mapTerrains[i][j].act.pv>0))mapTerrains[i][j].act=null;
+					else Affichage.dessineImageDansCase(j, i, mapTerrains[i][j].act.getChemin());
 				}
 
 			}
@@ -173,40 +177,244 @@ public class Jeu {
 
 	public void update() {
 		AssociationTouches toucheSuivante = AssociationTouches.trouveProchaineEntree(); //cette fonction boucle jusqu'a la prochaine entree de l'utilisateur
+		
+		
+		
 		if (toucheSuivante.isHaut()) {
 			if(indexPos[1]<mapTerrains.length-1){
-				indexPos[1]+=1;
+				if(unitSelect)
+				{
+					int[] futureCase= new int[]{indexPos[0],indexPos[1]+1};
+					if(estPresent(futureCase)){
+						retourArriere(futureCase);
+						indexPos[1]+=1;
+					}
+					else{
+					Terrain futurTerrain =mapTerrains[indexPos[1]+1][indexPos[0]];
+					if(futurTerrain.act==null&&cmpPas>0){
+					switch (futurTerrain.getClass().getName()) {
+						case "ressources.Terrain.Eau" : 
+						if((select.typeDeplacement==deplacement.Aerien&&cmpPas>0)){
+							indexPos[1]+=1;
+							cmpPas--;
+							cheminUnit.add(indexPos.clone());
+						}break;
+						case "ressources.Terrain.Montagne":
+						if((select.typeDeplacement==deplacement.Pied&&cmpPas>1)||(select.typeDeplacement==deplacement.Aerien&&cmpPas>0)){
+							if(select.typeDeplacement==deplacement.Aerien)cmpPas--;
+							else cmpPas-=2;
+							indexPos[1]+=1;
+							cheminUnit.add(indexPos.clone());
+						}
+						break;
+						case "ressources.Terrain.Foret":
+						if((select.typeDeplacement!=deplacement.Chenille&&cmpPas>0)||cmpPas>1)
+						{
+							if(select.typeDeplacement!=deplacement.Chenille)cmpPas--;
+							else cmpPas-=2;
+							indexPos[1]+=1;
+							cheminUnit.add(indexPos.clone());
+						}
+						break;
+						default :
+						if(cmpPas>0){
+							indexPos[1]+=1;
+							cheminUnit.add(indexPos.clone());
+							cmpPas--;
+						}break;
+					}}}
+				}
+				else{
+					indexPos[1]+=1;
+				}
+				
 				System.out.println("Touche HAUT");
 				display();
+				
 				
 			}
 			
 			}
+
+
+
 		if (toucheSuivante.isBas()){ 
 			if(indexPos[1]>0){
+				if(unitSelect){
+					int[] futureCase= new int[]{indexPos[0],indexPos[1]-1};
+					if(estPresent(futureCase)){
+						retourArriere(futureCase);
+						indexPos[1]-=1;
+					}
+					else{
+				Terrain futurTerrain =mapTerrains[indexPos[1]-1][indexPos[0]];
+				if(futurTerrain.act==null&&cmpPas>0){
+				switch (futurTerrain.getClass().getName()) {
+					case "ressources.Terrain.Eau" : 
+					if((select.typeDeplacement==deplacement.Aerien&&cmpPas>0)){
+						indexPos[1]-=1;
+						cmpPas--;
+						cheminUnit.add(indexPos.clone());
+					}break;
+					case "ressources.Terrain.Montagne":
+					if((select.typeDeplacement==deplacement.Pied&&cmpPas>1)||(select.typeDeplacement==deplacement.Aerien&&cmpPas>0)){
+						if(select.typeDeplacement==deplacement.Aerien)cmpPas--;
+						else cmpPas-=2;
+						indexPos[1]-=1;
+						cheminUnit.add(indexPos.clone());
+					}
+					break;
+					case "ressources.Terrain.Foret":
+					if((select.typeDeplacement!=deplacement.Chenille&&cmpPas>0)||cmpPas>1)
+					{
+						if(select.typeDeplacement!=deplacement.Chenille)cmpPas--;
+						else cmpPas-=2;
+						indexPos[1]-=1;
+						cheminUnit.add(indexPos.clone());
+					}
+					break;
+					default :
+					if(cmpPas>0){
+						indexPos[1]-=1;
+						cheminUnit.add(indexPos.clone());
+						cmpPas--;
+					}break;
+				}}}
+			}else{
 				indexPos[1]-=1;
+			}
 				System.out.println("Touche BAS");
 				display();
 			}
 			
 		}
+		
+		
+		
+		
 		if (toucheSuivante.isGauche()) {
 			if(indexPos[0]>0){
-			indexPos[0]-=1;
+				if(unitSelect){
+					int[] futureCase= new int[]{indexPos[0]-1,indexPos[1]};
+					if(estPresent(futureCase)){
+						retourArriere(futureCase);
+						indexPos[0]-=1;
+					}
+					else{
+					Terrain futurTerrain =mapTerrains[indexPos[1]][indexPos[0]-1];
+					if(futurTerrain.act==null&&cmpPas>0){
+					switch (futurTerrain.getClass().getName()) {
+						case "ressources.Terrain.Eau" : 
+						if((select.typeDeplacement==deplacement.Aerien&&cmpPas>0)){
+							indexPos[0]-=1;
+							cmpPas--;
+							cheminUnit.add(indexPos.clone());
+						}break;
+						case "ressources.Terrain.Montagne":
+						if((select.typeDeplacement==deplacement.Pied&&cmpPas>1)||(select.typeDeplacement==deplacement.Aerien&&cmpPas>0)){
+							if(select.typeDeplacement==deplacement.Aerien)cmpPas--;
+							else cmpPas-=2;
+							indexPos[0]-=1;
+							cheminUnit.add(indexPos.clone());
+						}
+						break;
+						case "ressources.Terrain.Foret":
+						if((select.typeDeplacement!=deplacement.Chenille&&cmpPas>0)||cmpPas>1)
+						{
+							if(select.typeDeplacement!=deplacement.Chenille)cmpPas--;
+							else cmpPas-=2;
+							indexPos[0]-=1;
+							cheminUnit.add(indexPos.clone());
+						}
+						break;
+						default :
+						if(cmpPas>0){
+							indexPos[0]-=1;
+							cheminUnit.add(indexPos.clone());
+							cmpPas--;
+						}break;
+					}}}
+				}else{
+					indexPos[0]-=1;
+				}
 			System.out.println("Touche GAUCHE");
 			display();}
 		}
+		
+		
+		
+		
+		
 		if 	(toucheSuivante.isDroite()) { 
 			if(indexPos[0]<mapTerrains[0].length-1){
-			indexPos[0]+=1;
+				if(unitSelect){
+					int[] futureCase= new int[]{indexPos[0]+1,indexPos[1]};
+					if(estPresent(futureCase)){
+						retourArriere(futureCase);
+						indexPos[0]+=1;
+					}
+					else{
+					Terrain futurTerrain =mapTerrains[indexPos[1]][indexPos[0]+1];
+					if(futurTerrain.act==null&&cmpPas>0){
+					switch (futurTerrain.getClass().getName()) {
+						case "ressources.Terrain.Eau" : 
+						if((select.typeDeplacement==deplacement.Aerien&&cmpPas>0)){
+							indexPos[0]+=1;
+							cmpPas--;
+							cheminUnit.add(indexPos.clone());
+						}break;
+						case "ressources.Terrain.Montagne":
+						if((select.typeDeplacement==deplacement.Pied&&cmpPas>1)||(select.typeDeplacement==deplacement.Aerien&&cmpPas>0)){
+							if(select.typeDeplacement==deplacement.Aerien)cmpPas--;
+							else cmpPas-=2;
+							indexPos[0]+=1;
+							cheminUnit.add(indexPos.clone());
+						}
+						break;
+						case "ressources.Terrain.Foret":
+						if((select.typeDeplacement!=deplacement.Chenille&&cmpPas>0)||cmpPas>1)
+						{
+							if(select.typeDeplacement!=deplacement.Chenille)cmpPas--;
+							else cmpPas-=2;
+							indexPos[0]+=1;
+							cheminUnit.add(indexPos.clone());
+						}
+						break;
+						default :
+						if(cmpPas>0){
+							indexPos[0]+=1;
+							cheminUnit.add(indexPos.clone());
+							cmpPas--;
+						}break;
+					}}}
+				}else{
+					indexPos[0]+=1;
+				}
 			System.out.println("Touche DROITE");
 			display();}
 		}
+
 		if(toucheSuivante.isEntree()){
 			System.out.println("Touche Entree");
-			if(mapTerrains[indexPos[1]][indexPos[0]].act!=null&&mapTerrains[indexPos[1]][indexPos[0]].act.app==indexJoueurActif){
+			if(mapTerrains[indexPos[1]][indexPos[0]].act!=null&&mapTerrains[indexPos[1]][indexPos[0]].act.app==indexJoueurActif&&!unitSelect&&mapTerrains[indexPos[1]][indexPos[0]].act.dispo){
+				cheminUnit.add(indexPos.clone());
 				unitSelect=true;
-				cheminUnit.add(indexPos);
+				select=mapTerrains[indexPos[1]][indexPos[0]].act;
+				cmpPas = select.nbPas;
+				//System.out.println(mapTerrains[indexPos[1]][indexPos[0]].act);
+			}else if(unitSelect){
+				if(indexPos[0]!=cheminUnit.get(0)[0]||indexPos[1]!=cheminUnit.get(0)[1]){
+					System.out.println(".....");
+					mapTerrains[cheminUnit.get(cheminUnit.size()-1)[1]][cheminUnit.get(cheminUnit.size()-1)[0]].act=select;
+					System.out.println(".....");
+					mapTerrains[cheminUnit.get(0)[1]][cheminUnit.get(0)[0]].act=null;
+					System.out.println(".....");
+					select.FinDeTour();
+				}
+				unitSelect=false;
+				select=null;
+				cheminUnit.clear();
+				
 			}
 			
 			display();
@@ -219,6 +427,8 @@ public class Jeu {
 			if (Affichage.popup("Finir le tour du joueur n°"+indexJoueurActif+ " ?", options, true, 1) == 0) {
 				//le choix 0, "Oui", a été selectionné
 				FinTour(indexJoueurActif);
+				unitSelect=false;
+				cheminUnit.clear();
 				indexJoueurActif=indexJoueurActif%2+1;
 				debutTour(indexJoueurActif);
 				System.out.println("FIN DE TOUR");
@@ -252,5 +462,32 @@ public class Jeu {
 			Ujoueur2.forEach((x)->x.NouveauTours());
 		}
 	}
-}
 
+	private boolean estPresent(int[]pos3){
+		return cheminUnit.stream().anyMatch(a -> Arrays.equals(a, pos3));
+	}
+	private void retourArriere(int[] pos3){
+		int[] rem;
+		int i= cheminUnit.size()-1;
+		while(!Arrays.equals(cheminUnit.get(i),pos3)){
+			rem =cheminUnit.remove(i);
+			i--;
+			switch (mapTerrains[rem[1]][rem[0]].getClass().getName()) {
+				case "ressources.Terrain.Eau" : 
+				cmpPas++;
+				break;
+				case "ressources.Terrain.Montagne":
+				if(select.typeDeplacement==deplacement.Aerien)cmpPas++;
+				else cmpPas+=2;
+				break;
+				case "ressources.Terrain.Foret":
+				if(select.typeDeplacement==deplacement.Chenille)cmpPas+=2;
+				else cmpPas+=1;
+				break;
+				default :
+				cmpPas++;
+				break;
+			}
+		}
+	}
+}
