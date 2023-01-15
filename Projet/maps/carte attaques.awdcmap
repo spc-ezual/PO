@@ -9,9 +9,9 @@ P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P
 P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P  
   ,  ,  ,t1,c2,z2,  ,  ,t2,c1,  ,  ,  ,  ,    
 Q1 ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,Q2  
-  ,  ,  ,  ,  ,b1,  ,  ,  ,  ,  ,  ,  ,  ,    
+  ,  ,  ,  ,  ,b1,  ,  ,  ,  ,  ,  ,  ,  ,i1    
 P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P  
-  ,  ,  ,a1,  ,t2, i1,b2,  ,  ,  ,  ,  ,  ,    
+  ,  ,  ,a1,  ,t2,  ,b2,  ,  ,  ,  ,  ,  ,    
 P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P  
   ,  ,  ,i2,  ,  ,i1,d1,h2,  ,  ,  ,  ,  ,    
 P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P ,P  
