@@ -8,9 +8,9 @@ import ressources.Chemins;
 public final class Helicoptere extends unite {
 
     public Helicoptere(int appartient) {
-        super(6, deplacement.Aerien, 12000, null, appartient);
+        super(6, deplacement.Aerien, 12000, null, appartient,1,1);
         ArrayList<armes> ar = new ArrayList<armes>();
-        ar.add(armes.Missile);
+        ar.add(armes.MissileAirSol);
         ar.add(armes.MitraLourde);
         this.Arme = ar;
     }
@@ -21,18 +21,17 @@ public final class Helicoptere extends unite {
     }
 
     @Override
-    public int maxCoef(ArrayList<armes> arme) {
+    public double maxCoef(ArrayList<armes> arme) {
         ArrayList<Double> coef = new ArrayList<Double>();
         for (armes ar : arme) {
             switch (ar) {
                 case MitraLeg -> coef.add(0.30);
-                case MitraLourde -> coef.add(1.1);
-                default -> coef.add(null);
+                case MitraLourde,MissileAirAir -> coef.add(1.1);
+                default -> coef.add(0.);
             }
         }
         Double maxi = Collections.max(coef);
-        if(maxi!=null)return (int)maxi.doubleValue();
-        return 0;
+        return maxi;
     }
     @Override
     public String getChemin() {

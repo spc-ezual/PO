@@ -1,8 +1,8 @@
 package ressources.Terrain;
 import ressources.Chemins;
-public class Montagne extends Terrain{
+public  class Montagne extends Terrain{
     @Override
-    public String getChemin() {
-        return Chemins.getCheminTerrain(Chemins.FICHIER_MONTAGNE);
+    public String getChemin(boolean enAttaque) {
+        return Chemins.getCheminTerrain(Chemins.FICHIER_MONTAGNE,enAttaque);
     }
 }

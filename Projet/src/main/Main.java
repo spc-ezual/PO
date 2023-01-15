@@ -21,9 +21,14 @@ public class Main {
 			StdDraw.show();  //StdDraw est utilise en mode buffer pour fluidifier l'affichage: utiliser StdDraw.show() pour afficher ce qui est dans le buffer
 			while (!jeu.isOver()) {
 				jeu.update();
- 	        }
+			}
+			if(Affichage.popup("La Partie est fini et le joueur n°"+jeu.indexJoueurActif,new String[]{"Nouvelle partie","Voir la carte de fin"} , false, 0)==0){
+				main(args);
+			}
+			jeu.display();
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			System.out.println("Erreur lors de l'execution du jeu : " + e.getMessage());
 		}
 	}

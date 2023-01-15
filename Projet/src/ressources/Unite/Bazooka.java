@@ -8,7 +8,7 @@ import ressources.Chemins;
 public final class Bazooka extends unite {
 
     public Bazooka(int appartient) {
-        super(2, deplacement.Pied, 3500, null, appartient);
+        super(2, deplacement.Pied, 3500, null, appartient,1,1);
         ArrayList<armes> ar = new ArrayList<armes>();
         ar.add(armes.MitraLeg);
         ar.add(armes.Canon);
@@ -21,7 +21,7 @@ public final class Bazooka extends unite {
     }
 
     @Override
-    public int maxCoef(ArrayList<armes> arme) {
+    public double maxCoef(ArrayList<armes> arme) {
         ArrayList<Double> coef = new ArrayList<Double>();
         for (armes ar : arme) {
             switch (ar) {
@@ -29,12 +29,11 @@ public final class Bazooka extends unite {
                 case MitraLourde -> coef.add(0.8);
                 case Bombes -> coef.add(1.0);
                 case Mortier -> coef.add(0.5);
-                default -> coef.add(null);
+                default -> coef.add(0.);
             }
         }
         Double maxi = Collections.max(coef);
-        if(maxi!=null)return (int)maxi.doubleValue();
-        return 0;
+        return maxi;
     }
     @Override
     public String getChemin() {

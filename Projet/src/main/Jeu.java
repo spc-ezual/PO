@@ -1,5 +1,8 @@
 /** package principal */
 package main;
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -13,20 +16,76 @@ import ressources.Chemins;
 import ressources.Unite.*;
 
 public class Jeu {
+	/**
+	 * tableau de tableau qui contien l'ensemble des case de type Terrain
+	 */
 	Terrain[][] mapTerrains;
+	/**
+	 * position actuel du curseur
+	 */
 	private int[]indexPos={0,0};
-	private int indexJoueurActif; //l'indice du joueur actif:  1 = rouge, 2 = bleu
+	/**
+	 * tableau qui sert a la sauvegarde des position des joueur
+	 */
+	private int[][]indexPosJ={{0,0},{0,0}};
+	
+	/**
+	 * indice du joueur actuel | 1 = rouge, 2 = bleu
+	 */
+	public int indexJoueurActif; //l'indice du joueur actif:  1 = rouge, 2 = bleu
 	// l'indice 0 est reserve au neutre, qui ne joue pas mais peut posseder des proprietes
 
-	ArrayList<int[]> cheminUnit= new ArrayList<int[]>();
-	boolean unitSelect;
-	ArrayList<unite> Ujoueur1;
-	ArrayList<unite> Ujoueur2;
-	unite select;
-	int cmpPas;
+	/**
+	 * Arrays qui contient le chemin que l'unite veut emprunter
+	 */
+	private ArrayList<int[]> cheminUnit= new ArrayList<int[]>();
+	/**
+	 * vrais si le joeur est en train de deplace une unite
+	 */
+	private boolean unitSelect;
+	/**
+	 * ensemble des unite du joueur 1
+	 */
+	private ArrayList<unite> Ujoueur1;
+	/**
+	 * ensemble des unite du joueur 2
+	 */
+	private ArrayList<unite> Ujoueur2;
+	/**
+	 * unite actuelement selectionne
+	 */
+	private unite select;
+	/**
+	 * nombres de pas restant a l'unite selectionne pour ce deplace
+	 */
+	private int cmpPas;
+	/**
+	 * ensemble des case qui peut etre attaque par l'unite selectionne
+	 */
+	private ArrayList<int[]> PeuvEtreAtta= new ArrayList<int[]>();
+	/**
+	 * vrais si l'on attend la case a attaque
+	 */
+	private boolean enAtta=false;
+	/**
+	 * argent du joueur 1
+	 */
+	private int monnaisJ1=0;
+	/**
+	 * argent du joueur 2
+	 */
+	private int monnaisJ2=0;
+	/**
+	 * vrais si le QG de l'un des joueur est capture
+	 */
+	private boolean fini=false;
+
 	
 	
 	
+	/**
+	 * Constructeur
+	 */
 	public Jeu(String fileName) throws Exception {
 		//appel au parseur, qui renvoie un tableau de String 
 		String[][] carteString = ParseurCartes.parseCarte(fileName);
@@ -35,8 +94,6 @@ public class Jeu {
 		mapTerrains = new Terrain[carteString.length][carteString[0].length];
 		Ujoueur1=new ArrayList<unite>();
 		Ujoueur2=new ArrayList<unite>();
-
-
 		for (int i = 0; i<carteString.length; i++) {
 			for (int j=0; j < carteString[0].length; j++){
 				String[] s =carteString[i][j].split(";");
@@ -88,23 +145,42 @@ public class Jeu {
 	}
 
 	public boolean isOver() {
-		return false;
+		return fini;
 	}
 
+	/**
+	 * Permet l'affichage des principal information
+	 */
 	public void afficheStatutJeu() {
 		Affichage.videZoneTexte();
-		Affichage.afficheTexteDescriptif("Au tour du joueur n°"+indexJoueurActif);
+		String InfoCase,InfoApp="",Action;
+		if(mapTerrains[indexPos[1]][indexPos[0]].act!=null){
+			InfoCase=mapTerrains[indexPos[1]][indexPos[0]].act.toString();
+			InfoApp = "Appartient à :"+mapTerrains[indexPos[1]][indexPos[0]].act.app;
+		}
+		else{
+			InfoCase=mapTerrains[indexPos[1]][indexPos[0]].toString();
+			if(mapTerrains[indexPos[1]][indexPos[0]].appart()!=-1){
+				InfoApp= "Appartient à :"+mapTerrains[indexPos[1]][indexPos[0]].appart();
+			}
+		}
+		if(enAtta)Action="En attaque";
+		else if(unitSelect)Action="En deplacement";
+		else Action ="En attente de selection";
+
+		Affichage.afficheTexteInfo("J1: "+monnaisJ1,"J2: "+monnaisJ2,"Au tour du joueur n°"+indexJoueurActif,InfoCase,InfoApp,Action);
 		}
 
 
+	/**
+	 * Fontion qui affiche mapTerrain
+	 */
 	public void display() {
 		StdDraw.clear();
 		afficheStatutJeu();
-		Affichage.dessineImageDansCase(1, 1, Chemins.getCheminTerrain(Chemins.FICHIER_FORET)); //exemple d'affichage d'une image de forêt dans la case (1,1)
 		for (int i = 0; i<mapTerrains.length; i++) {
 			for (int j=0; j < mapTerrains[0].length; j++){
-			
-				Affichage.dessineImageDansCase(j, i, mapTerrains[i][j].getChemin());
+				Affichage.dessineImageDansCase(j, i, mapTerrains[i][j].getChemin(enAtta&&estPresent(PeuvEtreAtta, new int[]{j,i})));
 				if(mapTerrains[i][j].act!=null){
 					if(!(mapTerrains[i][j].act.pv>0))mapTerrains[i][j].act=null;
 					else Affichage.dessineImageDansCase(j, i, mapTerrains[i][j].act.getChemin());
@@ -171,10 +247,17 @@ public class Jeu {
 		display();
 	}
 
+	/**
+	 * Fonction qui dessine le curseur
+	 */
 	public void drawGameCursor() {
 		Affichage.dessineCurseur(indexPos[0],indexPos[1]); //affiche le curseau en (0,0), a modifier
 	}
 
+	
+	/**
+	 * Fonction qui effectue une action selon la touche presse par l'utilisateur
+	 */
 	public void update() {
 		AssociationTouches toucheSuivante = AssociationTouches.trouveProchaineEntree(); //cette fonction boucle jusqu'a la prochaine entree de l'utilisateur
 		
@@ -185,7 +268,7 @@ public class Jeu {
 				if(unitSelect)
 				{
 					int[] futureCase= new int[]{indexPos[0],indexPos[1]+1};
-					if(estPresent(futureCase)){
+					if(estPresent(cheminUnit,futureCase)){
 						retourArriere(futureCase);
 						indexPos[1]+=1;
 					}
@@ -242,7 +325,7 @@ public class Jeu {
 			if(indexPos[1]>0){
 				if(unitSelect){
 					int[] futureCase= new int[]{indexPos[0],indexPos[1]-1};
-					if(estPresent(futureCase)){
+					if(estPresent(cheminUnit,futureCase)){
 						retourArriere(futureCase);
 						indexPos[1]-=1;
 					}
@@ -296,7 +379,7 @@ public class Jeu {
 			if(indexPos[0]>0){
 				if(unitSelect){
 					int[] futureCase= new int[]{indexPos[0]-1,indexPos[1]};
-					if(estPresent(futureCase)){
+					if(estPresent(cheminUnit,futureCase)){
 						retourArriere(futureCase);
 						indexPos[0]-=1;
 					}
@@ -349,7 +432,7 @@ public class Jeu {
 			if(indexPos[0]<mapTerrains[0].length-1){
 				if(unitSelect){
 					int[] futureCase= new int[]{indexPos[0]+1,indexPos[1]};
-					if(estPresent(futureCase)){
+					if(estPresent(cheminUnit,futureCase)){
 						retourArriere(futureCase);
 						indexPos[0]+=1;
 					}
@@ -396,27 +479,97 @@ public class Jeu {
 
 		if(toucheSuivante.isEntree()){
 			System.out.println("Touche Entree");
-			if(mapTerrains[indexPos[1]][indexPos[0]].act!=null&&mapTerrains[indexPos[1]][indexPos[0]].act.app==indexJoueurActif&&!unitSelect&&mapTerrains[indexPos[1]][indexPos[0]].act.dispo){
+			Terrain selectionne=mapTerrains[indexPos[1]][indexPos[0]];
+			if(selectionne.act!=null&&selectionne.act.app==indexJoueurActif&&!unitSelect&&selectionne.act.dispo&&!enAtta){
 				cheminUnit.add(indexPos.clone());
 				unitSelect=true;
-				select=mapTerrains[indexPos[1]][indexPos[0]].act;
+				select=selectionne.act;
 				cmpPas = select.nbPas;
-				//System.out.println(mapTerrains[indexPos[1]][indexPos[0]].act);
-			}else if(unitSelect){
-				if(indexPos[0]!=cheminUnit.get(0)[0]||indexPos[1]!=cheminUnit.get(0)[1]){
-					System.out.println(".....");
-					mapTerrains[cheminUnit.get(cheminUnit.size()-1)[1]][cheminUnit.get(cheminUnit.size()-1)[0]].act=select;
-					System.out.println(".....");
-					mapTerrains[cheminUnit.get(0)[1]][cheminUnit.get(0)[0]].act=null;
-					System.out.println(".....");
-					select.FinDeTour();
-				}
-				unitSelect=false;
-				select=null;
-				cheminUnit.clear();
-				
 			}
 			
+			else if(unitSelect){
+				String[] options = {"Oui", "Non"};
+				String[] options2 ;
+				if(Affichage.popup("Déplacee la troupe ici?", options, true, 1)==0){ 
+					if(peutCap(select, cheminUnit.get(cheminUnit.size()-1))){
+						options2 = new String[]{"Attendre","Attaque","Capture"};
+					}else{
+						options2 = new String[] {"Attendre","Attaque"};
+					}
+					int rep2 =Affichage.popup("Que voulez-vous faire ?", options2, true, 1);
+					if(rep2!=-1){
+						int[] coo=cheminUnit.get(cheminUnit.size()-1);
+						mapTerrains[coo[1]][coo[0]].act=select;
+						if(cheminUnit.size()!=1)mapTerrains[cheminUnit.get(0)[1]][cheminUnit.get(0)[0]].act=null;
+						select.FinDeTour();
+						if(rep2==1){
+							PeuvEtreAtta=peutAttaquee(indexPos);
+							enAtta=true;
+							select=selectionne.act;
+							System.out.println(PeuvEtreAtta);
+						}
+						else if(rep2==2){
+							fini=mapTerrains[coo[1]][coo[0]].capture(select);
+						}
+				}
+				}
+				unitSelect=false;
+				if(!enAtta)select=null;
+				cheminUnit.clear();
+				
+			}else if(enAtta&&estPresent(PeuvEtreAtta,indexPos)){
+				if(selectionne.act!=null&&selectionne.act.app!=indexJoueurActif&&select.peutAttaque(selectionne.act)){
+					select.attaquer(selectionne.act, select.porteMax>1);
+				}
+					PeuvEtreAtta.clear();
+					enAtta=false;
+				
+			}
+
+			//si Usine
+			else if(selectionne.act==null&&selectionne.getClass()==Usine.class&&selectionne.appart()==indexJoueurActif){
+				ArrayList<Class<unite>> listeUni=getSubclasses("ressources.Unite", unite.class);
+				String[] LUniStr=new String[listeUni.size()];
+				Class<unite> u;
+				String PhraseArgent="Vous avez :";
+				if(indexJoueurActif==1)PhraseArgent+=monnaisJ1;
+				else PhraseArgent+=monnaisJ2;
+				
+				
+				for( int i =0 ; i<listeUni.size();i++){
+					u=listeUni.get(i);
+					unite instance = null;
+					try {
+						instance = u.getConstructor(int.class).newInstance(indexJoueurActif);
+					} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+									| InvocationTargetException | NoSuchMethodException | SecurityException e) {
+						e.printStackTrace();
+					}
+					LUniStr[i]=u.getSimpleName()+" pour "+instance.getPrix();
+				}
+				int voulu=Affichage.popup(PhraseArgent, LUniStr, true, 0);
+				if(voulu!=-1){
+				unite instance=null;
+				try {
+					instance = listeUni.get(voulu).getConstructor(int.class).newInstance(indexJoueurActif);
+				} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+						| InvocationTargetException | NoSuchMethodException | SecurityException e) {
+					e.printStackTrace();
+				}
+				if(instance != null){
+					if(indexJoueurActif==1&&instance.getPrix()<=monnaisJ1){
+						selectionne.setUnit(instance);
+						monnaisJ1-=instance.getPrix();
+						Ujoueur1.add(instance);
+					}
+					else if (indexJoueurActif==2&&instance.getPrix()<=monnaisJ2){
+						selectionne.setUnit(instance);
+						monnaisJ2-=instance.getPrix();
+						Ujoueur2.add(instance);
+					}
+				}}
+				
+			}
 			display();
 		}
 		
@@ -427,9 +580,14 @@ public class Jeu {
 			if (Affichage.popup("Finir le tour du joueur n°"+indexJoueurActif+ " ?", options, true, 1) == 0) {
 				//le choix 0, "Oui", a été selectionné
 				FinTour(indexJoueurActif);
+				AjoutArgentVerifCap();
 				unitSelect=false;
+				enAtta=false;
 				cheminUnit.clear();
+				PeuvEtreAtta.clear();
+				indexPosJ[indexJoueurActif-1]=indexPos.clone();
 				indexJoueurActif=indexJoueurActif%2+1;
+				indexPos=indexPosJ[indexJoueurActif-1].clone();
 				debutTour(indexJoueurActif);
 				System.out.println("FIN DE TOUR");
 			}
@@ -463,9 +621,18 @@ public class Jeu {
 		}
 	}
 
-	private boolean estPresent(int[]pos3){
-		return cheminUnit.stream().anyMatch(a -> Arrays.equals(a, pos3));
+	/**
+	 * @param verif List a verfier
+	 * @param pos3 Element a rechercher
+	 * @return vrais si l'on trouve pos3 recherche dans verif
+	 */
+	private boolean estPresent(ArrayList<int[]> verif,int[]pos3){
+		return verif.stream().anyMatch(a -> Arrays.equals(a, pos3));
 	}
+
+	/**
+	 * @param pos3 Possition a la quel l'on souhaite retourne
+	 */
 	private void retourArriere(int[] pos3){
 		int[] rem;
 		int i= cheminUnit.size()-1;
@@ -490,4 +657,106 @@ public class Jeu {
 			}
 		}
 	}
+	/**
+	 * @param coo Coordonner d'ou l'on suhaite attaque
+	 * @return Les case qui peuvent etre attaque par l'unité sur la case coo
+	 */
+	private ArrayList<int[]> peutAttaquee(int[]coo){
+		ArrayList<int[]> rep= new ArrayList<int[]>();
+		int MaxAtta=mapTerrains[coo[1]][coo[0]].act.porteMax;
+		int MinAtta=mapTerrains[coo[1]][coo[0]].act.porteMin;
+		for(int i =0;i<=MaxAtta;i++){
+			for(int j =0;j<=MaxAtta;j++){
+				System.out.println(i+" "+j);
+				
+				if((i+j>=MinAtta&&i+j<=MaxAtta)){
+					if(i==0){
+						rep.add(new int[]{coo[0],coo[1]+j});
+						rep.add(new int[]{coo[0],coo[1]-j});
+
+					}
+					else if(j==0){
+						rep.add(new int[]{coo[0]+i,coo[1]});
+						rep.add(new int[]{coo[0]-i,coo[1]});
+					}else{
+						rep.add(new int[]{coo[0]+i,coo[1]+j});
+						rep.add(new int[]{coo[0]-i,coo[1]-j});
+						rep.add(new int[]{coo[0]+i,coo[1]-j});
+						rep.add(new int[]{coo[0]-i,coo[1]+j});
+
+					}
+					
+				}
+			}
+		}
+		return rep;
+	}
+
+	/**
+	 * Ajoute l'argent au joeur qui fini sont tours
+	 * / verifie que tous les batiement sont toujours en capture 
+	 */
+	public void AjoutArgentVerifCap(){
+		for (int i = 0; i<mapTerrains.length; i++) {
+			for (int j=0; j < mapTerrains[0].length; j++){
+				if(mapTerrains[i][j].appart()==indexJoueurActif){
+					if(indexJoueurActif==1)monnaisJ1+=1000;
+					else monnaisJ2+=1000;
+				}
+				if(mapTerrains[i][j].act==null||peutCap(mapTerrains[i][j].act, new int[]{j,i})){
+					mapTerrains[i][j].RemiseAzero();
+				}
+				
+			}
+		}
+	}
+
+	/**
+	 * @param u unite qui souhaite capture
+	 * @param coo Case a capture
+	 * @return true si u  peut capture la case coo
+	 */
+	public boolean peutCap(unite u, int[] coo){
+		if(u==null)return false;
+		boolean aPied=u.typeDeplacement==deplacement.Pied;
+		boolean estPropEnem=mapTerrains[coo[1]][coo[0]].getClass()==QG.class||mapTerrains[coo[1]][coo[0]].getClass()==Ville.class||mapTerrains[coo[1]][coo[0]].getClass()==Usine.class;
+		if(estPropEnem){
+			Propriete t =(Propriete) mapTerrains[coo[1]][coo[0]];
+			return t.appartient!=indexJoueurActif&&aPied;
+		}
+		return false;
+	}
+
+	/**
+	 * @param <A> Type de la class mere
+	 * @param packageName Dossier ou se trouve la class mere
+	 * @param parentClass Class mere
+	 * @return L'ensemble des class fille de parentClass contenue dans packageName
+	 */
+	public static <A> ArrayList<Class<A>> getSubclasses(String packageName, Class<A> parentClass) {
+		ArrayList<Class<A>> subclasses = new ArrayList<>();
+		String packagePath = packageName.replace(".", "/");
+		URL packageURL = ClassLoader.getSystemClassLoader().getResource(packagePath);
+		if (packageURL != null) {
+			File packageDir = new File(packageURL.getFile());
+			if (packageDir.exists() && packageDir.isDirectory()) {
+				for (File file : packageDir.listFiles()) {
+					if (file.isFile() && file.getName().endsWith(".class")) {
+						String className = file.getName().substring(0, file.getName().length() - 6);
+						try {
+							Class<?> cls = Class.forName(packageName + "." + className);
+							if (parentClass.isAssignableFrom(cls) && !parentClass.equals(cls)) {
+								subclasses.add((Class<A>) cls);
+							}
+						} catch (ClassNotFoundException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}
+		return subclasses;
+	}
+	
+
 }

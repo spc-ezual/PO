@@ -1,5 +1,14 @@
 package ressources.Unite;
 
 public enum deplacement {
-    Pied,Chenille,Aerien
+    /**
+     * Unite a pied
+     */
+    Pied,/**
+     * Unite sur chenille
+     */
+    Chenille,/**
+     *Unite aerienne
+     */
+    Aerien
 }

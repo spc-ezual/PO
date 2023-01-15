@@ -211,6 +211,20 @@ Vide la zone de texte en affichant la couleur de l'arriere-plan a la place.
         StdDraw.setFont(Config.POLICE_PAR_DEFAUT);
         StdDraw.text(coordXZoneTexte(0.5), coordYZoneTexte(0.2), message);
     }
+    
+    public static void afficheTexteInfo(String monnaisJ1,String monnaisJ2,String JoueurActuel,String infoCase,String InfoApp,String Action) {
+        videZoneTexte();
+        StdDraw.setPenColor(Config.COULEUR_TEXTE_DESCRIPTIF);
+        StdDraw.setFont(Config.POLICE_PAR_DEFAUT);
+        StdDraw.text(coordXZoneTexte(0.1), coordYZoneTexte(0.5), "Monnais :");
+        StdDraw.text(coordXZoneTexte(0.1), coordYZoneTexte(0), monnaisJ1);
+        StdDraw.text(coordXZoneTexte(0.1), coordYZoneTexte(-0.5), monnaisJ2);
+        StdDraw.text(coordXZoneTexte(0.5), coordYZoneTexte(1), JoueurActuel);
+        StdDraw.text(coordXZoneTexte(0.75), coordYZoneTexte(0.5),infoCase );
+        StdDraw.text(coordXZoneTexte(0.75), coordYZoneTexte(0.),InfoApp );
+        StdDraw.text(coordXZoneTexte(0.75), coordYZoneTexte(-0.5),Action );
+    }
+    
 
 
 
@@ -292,7 +306,6 @@ Affiche la grille.
             	
             }
             if (key.isBas()) {
-            	// TODO : quand le curseur est a l'avant derniere option affichee et qu'on appuie sur bas, ne pas deplacer le curseur mais augmenter le offset de 1
             	if (popupCursor == nombreMaxDOptionsAffichees-2 && offsetOptions <  (nbOptions- nombreMaxDOptionsAffichees)) {
             		offsetOptions ++;
                 }	

@@ -8,7 +8,7 @@ import ressources.Chemins;
 public final class Tank extends unite {
 
     public Tank(int appartient) {
-        super(6, deplacement.Chenille, 7000, null, appartient);
+        super(6, deplacement.Chenille, 7000, null, appartient,1,1);
         ArrayList<armes> ar = new ArrayList<armes>();
         ar.add(armes.MitraLeg);
         ar.add(armes.Canon);
@@ -21,22 +21,21 @@ public final class Tank extends unite {
     }
 
     @Override
-    public int maxCoef(ArrayList<armes> arme) {
+    public double maxCoef(ArrayList<armes> arme) {
         ArrayList<Double> coef = new ArrayList<Double>();
         for (armes ar : arme) {
             switch (ar) {
                 case MitraLeg -> coef.add(0.15);
                 case Canon -> coef.add(0.55);
                 case MitraLourde -> coef.add(0.30);
-                case Missile -> coef.add(0.70);
+                case MissileAirSol -> coef.add(0.70);
                 case Bombes -> coef.add(1.0);
                 case Mortier -> coef.add(0.7);
-                default -> coef.add(null);
+                default -> coef.add(0.);
             }
         }
         Double maxi = Collections.max(coef);
-        if(maxi!=null)return (int)maxi.doubleValue();
-        return 0;
+        return maxi;
     }
     @Override
     public String getChemin() {

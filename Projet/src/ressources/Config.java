@@ -1,6 +1,5 @@
 
 package ressources;
-import librairies.AssociationTouches;
 import librairies.StdDraw;
 
 import java.awt.Color;

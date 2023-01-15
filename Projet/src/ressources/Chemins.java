@@ -1,6 +1,5 @@
 package ressources;
 import java.io.File;
-import java.util.ArrayList;
 
 /**
 Classe qui gere les chemins d'acces des fichiers. 
@@ -23,6 +22,10 @@ public class Chemins {
     protected static final String DOSSIER_BATIMENTS = DOSSIER_IMAGES + File.separator + "buildings";
     /** Dossier contenant les sprites des terrains */
     protected static final String DOSSIER_TERRAINS = DOSSIER_IMAGES + File.separator + "terrains";
+    /** Dossier contenant les sprites des batiments si il y a une attaque possible */
+    protected static final String DOSSIER_ATTAQUE_BATIMENT = DOSSIER_IMAGES +File.separator+"TBATTAQUE"+File.separator+"buildings";
+    /** Dossier contenant les sprites des terrains si il y a une attaque possible */
+    protected static final String DOSSIER_ATTAQUE_TERRAINS = DOSSIER_IMAGES +File.separator+"TBATTAQUE"+File.separator+"terrains";
     /** Dossier contenant les sprites des unites */
     protected static final String DOSSIER_UNITES = DOSSIER_IMAGES +  File.separator + "troops";
     /** Dossier contenant les sprites des fleche de deplacement */
@@ -52,10 +55,16 @@ public class Chemins {
     public static final String FICHIER_HELICOPTERE = "helicopter.png";
     /** Nom du fichier de l'image de l'unite infanterie. Ce fichier existe dans plusieurs repertoires correspondants a  la couleur de l'unite et si elle est disponible ou non*/
     public static final String FICHIER_INFANTERIE = "infantry.png";
-    /** Nom du fichier de l'image de l'unite genie. Ce ² existe dans plusieurs repertoires correspondants a  la couleur de l'unite et si elle est disponible ou non*/
+    /** Nom du fichier de l'image de l'unite genie. Ce fichier existe dans plusieurs repertoires correspondants a  la couleur de l'unite et si elle est disponible ou non*/
     public static final String FICHIER_GENIE = "rig.png";
     /** Nom du fichier de l'image de l'unite tank. Ce fichier existe dans plusieurs repertoires correspondants a  la couleur de l'unite et si elle est disponible ou non*/
     public static final String FICHIER_TANK = "tank.png";
+    /** Nom du fichier de l'image de l'unite AChasse. Ce fichier existe dans plusieurs repertoires correspondants a  la couleur de l'unite et si elle est disponible ou non*/
+    public static final String FICHIER_ACHASSE = "AChasse.png";
+    /** Nom du fichier de l'image de l'unite APolyvalent. Ce fichier existe dans plusieurs repertoires correspondants a  la couleur de l'unite et si elle est disponible ou non*/
+    public static final String FICHIER_APOLIVALENT = "APolyvalent.png";
+    /** Nom du fichier de l'image de l'unite Drone. Ce fichier existe dans plusieurs repertoires correspondants a  la couleur de l'unite et si elle est disponible ou non*/
+    public static final String FICHIER_DRONE = "Drone.png";
         
     /** Nom du ficher contenant l'image du terrain plaine*/
     public static final String FICHIER_PLAINE = "plain.png";
@@ -93,8 +102,11 @@ public class Chemins {
      * @param nomFichier Le nom du fichier du terrain, par exemple <code>FICHIER_FORET</code>
      * @return Le chemin vers l'image du terrain
      */
-    public static String getCheminTerrain(String nomFichier) {
-        return DOSSIER_TERRAINS + File.separator + nomFichier;
+    public static String getCheminTerrain(String nomFichier,boolean enAttaque) {
+        if(enAttaque){  
+            return DOSSIER_ATTAQUE_TERRAINS+File.separator + nomFichier;
+        }
+        else return DOSSIER_TERRAINS + File.separator + nomFichier;
     }
     
     /**
@@ -135,8 +147,11 @@ public class Chemins {
      * @param joueur Le joueur possedant la propriete: 0 pour neutre, 1 pour rouge, 2 pour bleu
      * @return Le chemin vers l'image de la propriete
      */
-    public static String getCheminPropriete(String nomFichier, int joueur) {
-        return DOSSIER_BATIMENTS + File.separator + getStringJoueur(joueur) + File.separator + nomFichier; 
+    public static String getCheminPropriete(String nomFichier, int joueur,boolean enAttaque) {
+        if(enAttaque){  
+            return DOSSIER_ATTAQUE_BATIMENT + File.separator + getStringJoueur(joueur) + File.separator + nomFichier;
+        }
+        else return DOSSIER_BATIMENTS + File.separator + getStringJoueur(joueur) + File.separator + nomFichier;
     }
 /**
  * Donne le chemin vers le fichier de la carte
